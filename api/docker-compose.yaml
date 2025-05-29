@@ -1,0 +1,43 @@
+services:
+  app:
+    container_name: app
+    platform: linux/amd64
+    pid: "host"
+    build:
+      context: .
+    env_file: .env
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - pg-network
+    depends_on:
+      postgis:
+        condition: service_healthy
+
+  postgis:
+    image: postgis/postgis:17-3.5
+    container_name: postgis
+    restart: always
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=gis
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - pg-network
+    healthcheck:  # ヘルスチェック設定を追加
+      test: ["CMD-SHELL", "pg_isready -U user -d gis"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  pg-network:
+    driver: bridge
