@@ -6,12 +6,12 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/lc-tut/hdd-music-web/config"
-	"github.com/lc-tut/hdd-music-web/internal/controller"
+	// "github.com/lc-tut/hdd-music-web/internal/controller"
 	router "github.com/lc-tut/hdd-music-web/internal/router"
-	"github.com/lc-tut/hdd-music-web/internal/presenter"
-	"github.com/lc-tut/hdd-music-web/internal/repo/db"
-	"github.com/lc-tut/hdd-music-web/internal/repo/webapi"
-	"github.com/lc-tut/hdd-music-web/internal/usecase"
+	// "github.com/lc-tut/hdd-music-web/internal/presenter"
+	// "github.com/lc-tut/hdd-music-web/internal/repo/db"
+	// "github.com/lc-tut/hdd-music-web/internal/repo/webapi"
+	// "github.com/lc-tut/hdd-music-web/internal/usecase"
 	"github.com/lc-tut/hdd-music-web/pkg/logger"
 )
 
@@ -29,7 +29,7 @@ func Run(ctx context.Context, cfg *config.Config) {
 	defer conn.Close(ctx)
 
 	// Queriesインスタンスの作成
-	queries := db.New(conn)
+	// queries := db.New(conn)
 
 	// usecase
 

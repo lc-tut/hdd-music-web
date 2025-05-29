@@ -26,6 +26,5 @@ COPY --from=builder /app/config /config
 COPY --from=builder /app/migrations /migrations
 COPY --from=builder /bin/app /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY ./firebase-adminsdk.json /firebase-adminsdk.json
 
 CMD ["/app"]

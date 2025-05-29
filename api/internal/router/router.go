@@ -3,20 +3,17 @@ package router
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/lc-tut/hdd-music-web/internal/controller"
 )
 
 // Router はルート設定を行う構造体
 type Router struct {
 	e              *echo.Echo
-	authController *controller.AuthController
-	userController *controller.UserController
+	// コントローラー
 }
 
 // NewRouter は新しいRouterインスタンスを作成する
 func NewRouter(
-	authController *controller.AuthController,
-	userController *controller.UserController,
+	// コントローラーを受け取る
 ) *Router {
 	e := echo.New()
 
@@ -26,8 +23,7 @@ func NewRouter(
 
 	return &Router{
 		e:              e,
-		authController: authController,
-		userController: userController,
+		// コントローラーの初期化
 	}
 }
 
@@ -39,6 +35,8 @@ func health(c echo.Context) error {
 func (r *Router) SetupRoutes() {
 
 	r.e.GET("/health", health)
+
+	// ここにコントローラーのルート設定を追加
 }
 
 // Start はサーバーを起動する
