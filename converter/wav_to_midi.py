@@ -1,18 +1,19 @@
 from basic_pitch.inference import predict_and_save
 from basic_pitch import ICASSP_2022_MODEL_PATH
 from pathlib import Path
+import shutil
 import separate
 
 def debug_files():
     """利用可能なファイルを確認"""
-    input_dir = Path("converter/keep")
+    keep_dir = Path("converter/keep")
     print("=== ファイル確認 ===")
-    print(f"入力ディレクトリ: {input_dir.absolute()}")
-    print(f"ディレクトリ存在: {input_dir.exists()}")
+    print(f"入力ディレクトリ: {keep_dir.absolute()}")
+    print(f"ディレクトリ存在: {keep_dir.exists()}")
     
-    if input_dir.exists():
-        all_files = list(input_dir.iterdir())
-        wav_files = list(input_dir.glob("*.wav"))
+    if keep_dir.exists():
+        all_files = list(keep_dir.iterdir())
+        wav_files = list(keep_dir.glob("*.wav"))
         
         print(f"全ファイル数: {len(all_files)}")
         print(f"WAVファイル数: {len(wav_files)}")
@@ -28,10 +29,15 @@ def main():
     debug_files()
     
     # 入力・出力ディレクトリを統一してPathで管理
-    input_dir = Path("converter/keep")
-    input_dir.mkdir(parents=True, exist_ok=True)
+    keep_dir = Path("converter/keep")
+    if keep_dir.exists():
+        shutil.rmtree(input_dir)  # 既存のディレクトリを削除
+        keep_dir.mkdir(parents=True, exist_ok=True)
+
     output_dir = Path("converter/output")
-    output_dir.mkdir(parents=True, exist_ok=True)
+    if output_dir.exists():
+        shutil.rmtree(output_dir)  # 既存のディレクトリを削除
+        output_dir.mkdir(parents=True, exist_ok=True)
     
     # 音声分離を実行
     print("音声分離を実行中...")
@@ -40,7 +46,7 @@ def main():
     print("WAVをMIDIに変換します。")
     
     # WAVファイルのみを取得
-    wav_files = list(input_dir.glob("*.wav"))
+    wav_files = list(keep_dir.glob("*.wav"))
     
     if not wav_files:
         print("変換対象のWAVファイルが見つかりません")

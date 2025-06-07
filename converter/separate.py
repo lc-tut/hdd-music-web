@@ -94,8 +94,8 @@ def test_demucs_separation(sr):
         
         print("音声分離を開始...")
         original, stems = separator.separate_audio_file(abs_path)
-        output_dir = Path("converter/keep")
-        output_dir.mkdir(parents=True, exist_ok=True)
+        keep_dir = Path("converter/keep")
+        keep_dir.mkdir(parents=True, exist_ok=True)
         
         print("分離完了！")
         print(f"Original shape: {original.shape}")
@@ -105,7 +105,7 @@ def test_demucs_separation(sr):
             # tensor は torch.Tensor なので shape 属性あり
             print(f"  - {name}: {tensor.shape}")
 
-            out_path = output_dir / f"{test_file.stem}_{name}.wav"
+            out_path = keep_dir / f"{test_file.stem}_{name}.wav"
             torchaudio.save(str(out_path), tensor, sr)
             print(f"  - {name} → {out_path}")        
         
