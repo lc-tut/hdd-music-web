@@ -1,13 +1,15 @@
 from basic_pitch.inference import predict_and_save
 from basic_pitch import ICASSP_2022_MODEL_PATH
+from pathlib import Path
 import os
 
 
 # 入力ファイルのパス
-input_audio = "converter/input/lovedream.mp3"
+input_audio = "converter/wav_to_midi/input/yukemuri_other.wav"
 
 # 出力先ディレクトリ
-output_dir = "converter/output"
+output_dir = Path("converter/wav_to_midi/output")
+output_dir.mkdir(parents=True, exist_ok=True)
 
 
 
