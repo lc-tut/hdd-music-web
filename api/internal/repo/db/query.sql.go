@@ -17,7 +17,7 @@ INSERT INTO musics (
     title, midi_file_path
 ) VALUES (
     $1, $2
-) RETURNING id, midi_file_path
+) RETURNING id
 `
 
 type CreateMusicRowParams struct {
@@ -25,29 +25,24 @@ type CreateMusicRowParams struct {
 	MidiFilePath string `json:"midi_file_path"`
 }
 
-type CreateMusicRowRow struct {
-	ID           pgtype.UUID `json:"id"`
-	MidiFilePath string      `json:"midi_file_path"`
-}
-
-func (q *Queries) CreateMusicRow(ctx context.Context, arg CreateMusicRowParams) (CreateMusicRowRow, error) {
+func (q *Queries) CreateMusicRow(ctx context.Context, arg CreateMusicRowParams) (pgtype.UUID, error) {
 	row := q.db.QueryRow(ctx, createMusicRow, arg.Title, arg.MidiFilePath)
-	var i CreateMusicRowRow
-	err := row.Scan(&i.ID, &i.MidiFilePath)
-	return i, err
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getMusicMovies = `-- name: GetMusicMovies :many
-SELECT title, created_at, updated_at FROM musics
+SELECT id, title, created_at FROM musics
 WHERE movie_file_path IS NOT NULL
 AND movie_file_path != ''
 ORDER BY created_at DESC
 `
 
 type GetMusicMoviesRow struct {
+	ID        pgtype.UUID        `json:"id"`
 	Title     string             `json:"title"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) GetMusicMovies(ctx context.Context) ([]GetMusicMoviesRow, error) {
@@ -59,7 +54,7 @@ func (q *Queries) GetMusicMovies(ctx context.Context) ([]GetMusicMoviesRow, erro
 	items := []GetMusicMoviesRow{}
 	for rows.Next() {
 		var i GetMusicMoviesRow
-		if err := rows.Scan(&i.Title, &i.CreatedAt, &i.UpdatedAt); err != nil {
+		if err := rows.Scan(&i.ID, &i.Title, &i.CreatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -110,12 +105,12 @@ RETURNING id, movie_file_path
 
 type UpdateMusicMovieFilePathParams struct {
 	ID            pgtype.UUID `json:"id"`
-	MovieFilePath pgtype.Text `json:"movie_file_path"`
+	MovieFilePath string `json:"movie_file_path"`
 }
 
 type UpdateMusicMovieFilePathRow struct {
 	ID            pgtype.UUID `json:"id"`
-	MovieFilePath pgtype.Text `json:"movie_file_path"`
+	MovieFilePath string `json:"movie_file_path"`
 }
 
 func (q *Queries) UpdateMusicMovieFilePath(ctx context.Context, arg UpdateMusicMovieFilePathParams) (UpdateMusicMovieFilePathRow, error) {
