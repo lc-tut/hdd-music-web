@@ -3,14 +3,21 @@
 package entity
 
 type (
-
-	Midi struct {
-		path string
+	MidiFileInfo struct {
+		Path string
 	}
-	MidiRepository interface {                    // midiの和音分離
-		playt(hn int) (bool, error) // 出力ポートの演奏
+	MidiMessage []byte
+	MidiEvent   struct {
+		Msg         MidiMessage
+		AbsMicroSec uint64
 	}
+	ProcessedMidiData struct {
+		Events []MidiEvent
+	}
+	HardwereNumber int
 
+	MidiRepository interface {
+		ParseMidiFile(MidiFileInfo) ([]ProcessedMidiData, error)
+		PlayMidi(ProcessedMidiData, HardwereNumber) error
+	}
 )
-
-
