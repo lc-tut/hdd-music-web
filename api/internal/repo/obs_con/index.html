@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>OBSコントロール</title>
+</head>
+<body>
+  <h1>OB配信スイッチ</h1>
+  <button onclick="start()">▶ 配信開始</button>
+  <button onclick="stop()">■ 配信停止</button>
+  <br><br>
+  <button onclick="startRecord()">● 録画開始</button>
+  <button onclick="stopRecord()">■ 録画停止</button>
+
+  <script>
+    function start() {
+      fetch('/start').then(res => res.text()).then(alert);
+    }
+
+    function stop() {
+      fetch('/stop').then(res => res.text()).then(alert);
+    }
+
+    function startRecord() {
+      fetch('/start-record').then(res => res.text()).then(alert);
+    }
+
+    function stopRecord() {
+      fetch('/stop-record').then(res => res.text()).then(alert);
+    }
+  </script>
+</body>
+</html>
