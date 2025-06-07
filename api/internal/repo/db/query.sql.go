@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
-
 	"github.com/lc-tut/hdd-music-web/internal/entity"
 )
 
@@ -38,7 +37,7 @@ func (q *Queries) CreateMusicRow(ctx context.Context, arg CreateMusicRowParams) 
 	return i, err
 }
 
-const getMusicMovies = `-- name: GetMusicMovies :one
+const getMusicMovies = `-- name: GetMusicMovies :many
 SELECT title, created_at, updated_at FROM musics
 WHERE movie_file_path IS NOT NULL
 AND movie_file_path != ''
@@ -51,11 +50,24 @@ type GetMusicMoviesRow struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
-func (q *Queries) GetMusicMovies(ctx context.Context) (GetMusicMoviesRow, error) {
-	row := q.db.QueryRow(ctx, getMusicMovies)
-	var i GetMusicMoviesRow
-	err := row.Scan(&i.Title, &i.CreatedAt, &i.UpdatedAt)
-	return i, err
+func (q *Queries) GetMusicMovies(ctx context.Context) ([]GetMusicMoviesRow, error) {
+	rows, err := q.db.Query(ctx, getMusicMovies)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetMusicMoviesRow{}
+	for rows.Next() {
+		var i GetMusicMoviesRow
+		if err := rows.Scan(&i.Title, &i.CreatedAt, &i.UpdatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getMusicRowByID = `-- name: GetMusicRowByID :many
@@ -89,26 +101,26 @@ func (q *Queries) GetMusicRowByID(ctx context.Context, id pgtype.UUID) ([]entity
 	return items, nil
 }
 
-const updateMusic_movieFilePath = `-- name: UpdateMusic_movieFilePath :one
+const updateMusicMovieFilePath = `-- name: UpdateMusicMovieFilePath :one
 UPDATE musics
 SET movie_file_path = $2
 WHERE id = $1
 RETURNING id, movie_file_path
 `
 
-type UpdateMusic_movieFilePathParams struct {
+type UpdateMusicMovieFilePathParams struct {
 	ID            pgtype.UUID `json:"id"`
 	MovieFilePath pgtype.Text `json:"movie_file_path"`
 }
 
-type UpdateMusic_movieFilePathRow struct {
+type UpdateMusicMovieFilePathRow struct {
 	ID            pgtype.UUID `json:"id"`
 	MovieFilePath pgtype.Text `json:"movie_file_path"`
 }
 
-func (q *Queries) UpdateMusicMovieFilePath(ctx context.Context, arg UpdateMusic_movieFilePathParams) (UpdateMusic_movieFilePathRow, error) {
-	row := q.db.QueryRow(ctx, updateMusic_movieFilePath, arg.ID, arg.MovieFilePath)
-	var i UpdateMusic_movieFilePathRow
+func (q *Queries) UpdateMusicMovieFilePath(ctx context.Context, arg UpdateMusicMovieFilePathParams) (UpdateMusicMovieFilePathRow, error) {
+	row := q.db.QueryRow(ctx, updateMusicMovieFilePath, arg.ID, arg.MovieFilePath)
+	var i UpdateMusicMovieFilePathRow
 	err := row.Scan(&i.ID, &i.MovieFilePath)
 	return i, err
 }

@@ -8,7 +8,7 @@ INSERT INTO musics (
 -- name: GetMusicRowByID :many
 SELECT * FROM musics WHERE id = $1;
 
--- name: GetMusicMovies :one
+-- name: GetMusicMovies :many
 SELECT title, created_at, updated_at FROM musics
 WHERE movie_file_path IS NOT NULL
 AND movie_file_path != ''
