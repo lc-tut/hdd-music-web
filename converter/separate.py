@@ -11,7 +11,8 @@ def debug_file_system():
     print(f"Python実行パス: {sys.executable}")
     
     # inputディレクトリの確認
-    input_dir = Path("converter/separate/input")
+    input_dir = Path("converter/input")
+    input_dir.mkdir(parents=True, exist_ok=True)  # ディレクトリがなければ作成
     print(f"\n入力ディレクトリ: {input_dir}")
     print(f"ディレクトリ存在: {input_dir.exists()}")
     
@@ -29,7 +30,8 @@ def test_audio_loading():
     """音声ファイルの読み込みテスト"""
     print("\n=== 音声ファイル読み込みテスト ===")
     
-    input_dir = Path("converter/separate/input")
+    input_dir = Path("converter/input")
+    input_dir.mkdir(parents=True, exist_ok=True)  # ディレクトリがなければ作成
     if not input_dir.exists():
         print("入力ディレクトリが見つかりません")
         return
@@ -70,7 +72,8 @@ def test_demucs_separation(sr):
     """Demucsでの分離テスト"""
     print("\n=== Demucs分離テスト ===")
     
-    input_dir = Path("converter/separate/input")
+    input_dir = Path("converter/input")
+    input_dir.mkdir(parents=True, exist_ok=True)  # ディレクトリがなければ作成
     wav_files = list(input_dir.glob("*.wav"))
     
     if not wav_files:
@@ -91,7 +94,7 @@ def test_demucs_separation(sr):
         
         print("音声分離を開始...")
         original, stems = separator.separate_audio_file(abs_path)
-        output_dir = Path("converter/separate/output")
+        output_dir = Path("converter/keep")
         output_dir.mkdir(parents=True, exist_ok=True)
         
         print("分離完了！")
@@ -116,7 +119,7 @@ def test_demucs_separation(sr):
 
 
 def main():
-    input_dir = Path("converter/separate/input")
+    input_dir = Path("converter/input")
     if not input_dir.exists():
         print(f"入力ディレクトリ '{input_dir}' が存在しません。")
         return
@@ -137,5 +140,5 @@ def main():
         print("音声分離テストに失敗しました。")
     
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
