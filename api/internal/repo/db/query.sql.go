@@ -65,35 +65,22 @@ func (q *Queries) GetMusicMovies(ctx context.Context) ([]GetMusicMoviesRow, erro
 	return items, nil
 }
 
-const getMusicRowByID = `-- name: GetMusicRowByID :many
+const getMusicRowByID = `-- name: GetMusicRowByID :one
 SELECT id, title, midi_file_path, movie_file_path, created_at, updated_at FROM musics WHERE id = $1
 `
 
-func (q *Queries) GetMusicRowByID(ctx context.Context, id pgtype.UUID) ([]entity.Music, error) {
-	rows, err := q.db.Query(ctx, getMusicRowByID, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []entity.Music{}
-	for rows.Next() {
-		var i entity.Music
-		if err := rows.Scan(
-			&i.ID,
-			&i.Title,
-			&i.MidiFilePath,
-			&i.MovieFilePath,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetMusicRowByID(ctx context.Context, id pgtype.UUID) (entity.Music, error) {
+	row := q.db.QueryRow(ctx, getMusicRowByID, id)
+	var i entity.Music
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.MidiFilePath,
+		&i.MovieFilePath,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const updateMusicMovieFilePath = `-- name: UpdateMusicMovieFilePath :one

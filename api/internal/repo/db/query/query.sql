@@ -5,7 +5,7 @@ INSERT INTO musics (
     $1, $2
 ) RETURNING id;
 
--- name: GetMusicRowByID :many
+-- name: GetMusicRowByID :one
 SELECT * FROM musics WHERE id = $1;
 
 -- name: GetMusicMovies :many

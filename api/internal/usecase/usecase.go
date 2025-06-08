@@ -16,7 +16,7 @@ import (
 )
 
 type UseCase struct {
-	dbRepo  db.Queries
+	dbRepo  *db.Queries
 	cnvRepo wav2mid.WAV2MIDConverter
 }
 
@@ -24,13 +24,23 @@ type input struct {
 	File  *multipart.FileHeader
 }
 
-type UseCaseInterface interface {
-	UploadFile(ctx context.Context, input input) (string, error)
-	GetMusicMovies(ctx context.Context) ([]db.GetMusicMoviesRow, error)
-	GetMusicMoviePath(ctx context.Context, id string) (string, error)
+type GetMusicMoviesRow struct {
+	ID        pgtype.UUID        `json:"id"`
+	Title     string             `json:"title"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
-func NewUseCase(dbRepo db.Queries, cnvRepo wav2mid.WAV2MIDConverter) *UseCase {
+type GetMusicMoviePath struct {
+	MovieFilePath string      `json:"movie_file_path"`
+}
+
+type UseCaseInterface interface {
+	UploadFile(ctx context.Context, input input) (string, error)
+	GetMusicMovies(ctx context.Context) ([]GetMusicMoviesRow, error)
+	GetMusicMoviePath(ctx context.Context, id string) (GetMusicMoviePath, error)
+}
+
+func NewUseCase(dbRepo *db.Queries, cnvRepo wav2mid.WAV2MIDConverter) *UseCase {
 	return &UseCase{
 		dbRepo:  dbRepo,
 		cnvRepo: cnvRepo,
@@ -111,29 +121,35 @@ func (u *UseCase) UploadFile(ctx context.Context, input input) (string, error) {
 	return id.String(), nil
 }
 
-func (u *UseCase) GetMusicMovies(ctx context.Context) ([]db.GetMusicMoviesRow, error) {
+func (u *UseCase) GetMusicMovies(ctx context.Context) ([]GetMusicMoviesRow, error) {
 	movies, err := u.dbRepo.GetMusicMovies(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get music movies: %w", err)
 	}
-	return movies, nil
+
+	var result []GetMusicMoviesRow
+	for _, movie := range movies {
+		result = append(result, GetMusicMoviesRow{
+			ID:        movie.ID,
+			Title:     movie.Title,
+			CreatedAt: movie.CreatedAt,
+		})
+	}
+
+	return result, nil
 }
 
-func (u *UseCase) GetMusicMoviePath(ctx context.Context, id string) (string, error) {
+func (u *UseCase) GetMusicMoviePath(ctx context.Context, id string) (GetMusicMoviePath, error) {
 	var musicID pgtype.UUID
 
 	if musicID.Scan(id) != nil {
-		return "", fmt.Errorf("invalid music ID format: %s", id)
+		return GetMusicMoviePath{}, fmt.Errorf("invalid music ID format: %s", id)
 	}
 
 	music, err := u.dbRepo.GetMusicRowByID(ctx, musicID)
 	if err != nil {
-		return "", fmt.Errorf("failed to get music by ID: %w", err)
+		return GetMusicMoviePath{}, fmt.Errorf("failed to get music by ID: %w", err)
 	}
 
-	if len(music) == 0 || music[0].MovieFilePath == "" {
-		return "", fmt.Errorf("no movie file found for music ID: %s", id)
-	}
-
-	return music[0].MovieFilePath, nil
+	return GetMusicMoviePath{MovieFilePath: music.MovieFilePath}, nil
 }
