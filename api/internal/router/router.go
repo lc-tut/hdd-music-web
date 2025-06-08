@@ -3,17 +3,19 @@ package router
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/lc-tut/hdd-music-web/internal/controller"
 )
 
 // Router はルート設定を行う構造体
 type Router struct {
-	e              *echo.Echo
-	// コントローラー
+	e               *echo.Echo
+	mediaController *controller.MediaController
 }
 
 // NewRouter は新しいRouterインスタンスを作成する
 func NewRouter(
-	// コントローラーを受け取る
+	mediaController *controller.MediaController,
 ) *Router {
 	e := echo.New()
 
@@ -22,8 +24,8 @@ func NewRouter(
 	e.Use(middleware.Recover())
 
 	return &Router{
-		e:              e,
-		// コントローラーの初期化
+		e:               e,
+		mediaController: mediaController,
 	}
 }
 
@@ -36,7 +38,14 @@ func (r *Router) SetupRoutes() {
 
 	r.e.GET("/health", health)
 
-	// ここにコントローラーのルート設定を追加
+	media := r.e.Group("/media")
+	{
+		media.GET("/movies", r.mediaController.GetMusicMovies)
+		media.GET("/movies/:id", r.mediaController.GetMusicMoviePath)
+	}
+
+	// 静的ファイルの提供
+	r.e.Static("/m", "/var/www/movies")
 }
 
 // Start はサーバーを起動する

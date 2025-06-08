@@ -85,9 +85,5 @@ func TestDB(t *testing.T) {
 		t.Fatalf("Failed to get music row by ID: %v", err)
 	}
 
-	if len(musicRow) == 0 {
-		t.Error("Expected to find music row by ID, got none")
-	}
-
-	t.Log("Successfully retrieved music row by ID: ", musicRow[0].MovieFilePath)
+	t.Log("Successfully retrieved music row by ID: ", musicRow.MovieFilePath)
 }

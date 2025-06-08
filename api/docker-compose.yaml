@@ -1,4 +1,21 @@
 services:
+  app:
+    container_name: app
+    platform: linux/amd64
+    pid: "host"
+    build:
+      context: .
+    env_file: .env
+    volumes:
+      - /var/www/movies:/var/www/movies
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - pg-network
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:17
     container_name: db

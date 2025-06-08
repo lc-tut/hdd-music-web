@@ -6,12 +6,12 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/lc-tut/hdd-music-web/config"
-	// "github.com/lc-tut/hdd-music-web/internal/controller"
+	"github.com/lc-tut/hdd-music-web/internal/controller"
 	router "github.com/lc-tut/hdd-music-web/internal/router"
-	// "github.com/lc-tut/hdd-music-web/internal/presenter"
-	// "github.com/lc-tut/hdd-music-web/internal/repo/db"
-	// "github.com/lc-tut/hdd-music-web/internal/repo/webapi"
-	// "github.com/lc-tut/hdd-music-web/internal/usecase"
+	"github.com/lc-tut/hdd-music-web/internal/presenter"
+	"github.com/lc-tut/hdd-music-web/internal/repo/db"
+	"github.com/lc-tut/hdd-music-web/internal/repo/wav2mid"
+	"github.com/lc-tut/hdd-music-web/internal/usecase"
 	"github.com/lc-tut/hdd-music-web/pkg/logger"
 )
 
@@ -22,23 +22,33 @@ func Run(ctx context.Context, cfg *config.Config) {
 	l.Info("App Name: %s", cfg.App.Name)
 
 	// Repositroy
-	conn, err := pgx.Connect(ctx, "postgres://user:password@postgis:5432/gis")
+	conn, err := pgx.Connect(ctx, "postgres://user:password@db:5432/midi")
 	if err != nil {
 		l.Fatal("Unable to connect to database: %v\n", err)
 	}
 	defer conn.Close(ctx)
 
 	// Queriesインスタンスの作成
-	// queries := db.New(conn)
+	queries := db.New(conn)
 
 	// usecase
+	useCase := usecase.NewUseCase(
+		queries,
+		wav2mid.NewAPIConverter(
+			"http://localhost:3000", // WAV2MIDのAPIエンドポイント
+		),
+	)
 
 	// コントローラーの作成
-
+	mediaController := controller.NewMediaController(
+		useCase,
+		presenter.NewMediaPresenter(),
+		presenter.NewErrorPresenter(),
+	)
 
 	// ルーターの初期化と設定
 	r := router.NewRouter(
-		// TODO: ルーターの追加
+		mediaController,
 	)
 	r.SetupRoutes()
 

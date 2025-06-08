@@ -9,5 +9,9 @@ CREATE TABLE IF NOT EXISTS musics (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO musics (title, midi_file_path, movie_file_path)
+VALUES
+    ('Default Music', '/var/midi/test1/default.mid', 'default.mp4');
+
 COMMIT;
 
