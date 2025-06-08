@@ -25,6 +25,10 @@ func (p *MediaPresenter) PresentMusicMovies(c echo.Context, movies []usecase.Get
 		Movies: movies,
 	}
 
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	c.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
 	return c.JSON(http.StatusOK, response)
 }
 
@@ -34,6 +38,10 @@ func (p *MediaPresenter) PresentMusicMoviePath(c echo.Context, path string) erro
 	}{
 		MovieFilePath: path,
 	}
+
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	c.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 	return c.JSON(http.StatusOK, response)
 }
