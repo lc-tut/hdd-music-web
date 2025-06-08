@@ -34,10 +34,10 @@ function Header() {
 }
 
 function Dialog_func() {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
 
-  const handleFileChange = (event) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       setSelectedFile(event.target.files[0]);
       setUploadStatus('');
@@ -109,7 +109,7 @@ function Dialog_func() {
           </div>
           {selectedFile && (
             <div className="col-span-4 text-sm text-center text-muted-foreground">
-              選択中のファイル: {selectedFile.name}
+              選択中のファイル: {selectedFile ? selectedFile.name : 'なし'}
             </div>
           )}
         </div>
