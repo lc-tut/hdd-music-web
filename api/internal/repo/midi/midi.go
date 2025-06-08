@@ -245,6 +245,9 @@ func (midiRepo) ParseMidiFile(f entity.MidiFileInfo) ([]entity.ProcessedMidiData
 	midis := make([]entity.ProcessedMidiData, int(newMidTracks.SMF().NumTracks()))
 	newMidTracks.Do(func(te smf.TrackEvent) {
 		track := &midis[te.TrackNo]
+		if !te.Message.IsPlayable() {
+			return
+		}
 		(*track).Events = append((*track).Events, entity.MidiEvent{
 			Msg:         entity.MidiMessage(te.Message.Bytes()),
 			AbsMicroSec: uint64(te.AbsMicroSeconds),
