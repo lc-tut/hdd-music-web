@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lc-tut/hdd-music-web/config"
 	"github.com/lc-tut/hdd-music-web/internal/controller"
-	router "github.com/lc-tut/hdd-music-web/internal/router"
 	"github.com/lc-tut/hdd-music-web/internal/presenter"
 	"github.com/lc-tut/hdd-music-web/internal/repo/db"
 	"github.com/lc-tut/hdd-music-web/internal/repo/wav2mid"
+	router "github.com/lc-tut/hdd-music-web/internal/router"
 	"github.com/lc-tut/hdd-music-web/internal/usecase"
 	"github.com/lc-tut/hdd-music-web/pkg/logger"
 )
@@ -21,15 +21,33 @@ func Run(ctx context.Context, cfg *config.Config) {
 
 	l.Info("App Name: %s", cfg.App.Name)
 
-	// Repositroy
-	conn, err := pgx.Connect(ctx, "postgres://user:password@db:5432/midi")
+	// データベース接続設定
+	dbConfig, err := pgxpool.ParseConfig("postgres://user:password@db:5432/midi")
 	if err != nil {
-		l.Fatal("Unable to connect to database: %v\n", err)
+		l.Fatal("Unable to parse database config: %v", err)
 	}
-	defer conn.Close(ctx)
+
+	// 接続プールの設定
+	dbConfig.MaxConns = 10                 // 最大接続数
+	dbConfig.MinConns = 1                  // 最小接続数（アイドル状態の接続を維持）
+	dbConfig.MaxConnLifetime = 1 * 60 * 60 // 接続の最大寿命（秒）
+	dbConfig.MaxConnIdleTime = 15 * 60     // アイドル接続の最大時間（秒）
+
+	// 接続プールの作成
+	pool, err := pgxpool.NewWithConfig(ctx, dbConfig)
+	if err != nil {
+		l.Fatal("Unable to create connection pool: %v", err)
+	}
+	defer pool.Close()
+
+	// 接続テスト
+	if err := pool.Ping(ctx); err != nil {
+		l.Fatal("Unable to ping database: %v", err)
+	}
+	l.Info("Successfully connected to database")
 
 	// Queriesインスタンスの作成
-	queries := db.New(conn)
+	queries := db.New(pool)
 
 	// usecase
 	useCase := usecase.NewUseCase(

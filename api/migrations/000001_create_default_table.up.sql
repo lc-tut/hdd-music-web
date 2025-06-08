@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS musics (
 
 INSERT INTO musics (title, midi_file_path, movie_file_path)
 VALUES
-    ('Default Music', '/var/midi/test1/default.mid', 'default.mp4');
+    ('Default Music', '/var/midi/test1/default.mid', 'test1/default.mp4');
 
 COMMIT;
 
