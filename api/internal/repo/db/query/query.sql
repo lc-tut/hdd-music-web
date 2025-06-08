@@ -3,13 +3,13 @@ INSERT INTO musics (
     title, midi_file_path
 ) VALUES (
     $1, $2
-) RETURNING id, midi_file_path;
+) RETURNING id;
 
 -- name: GetMusicRowByID :many
 SELECT * FROM musics WHERE id = $1;
 
 -- name: GetMusicMovies :many
-SELECT title, created_at, updated_at FROM musics
+SELECT id, title, created_at FROM musics
 WHERE movie_file_path IS NOT NULL
 AND movie_file_path != ''
 ORDER BY created_at DESC;

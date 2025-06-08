@@ -12,7 +12,7 @@ type Music struct {
 	ID            pgtype.UUID        `json:"id"`
 	Title         string             `json:"title"`
 	MidiFilePath  string             `json:"midi_file_path"`
-	MovieFilePath pgtype.Text        `json:"movie_file_path"`
+	MovieFilePath string       `json:"movie_file_path"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
