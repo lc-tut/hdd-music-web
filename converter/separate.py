@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 import torchaudio
+import shutil
 from demucs.api import Separator
 
 def debug_file_system():
@@ -118,27 +119,29 @@ def test_demucs_separation(sr):
         return False
 
 
-def main():
+def main(input_audio):
+    input_audio = Path(input_audio)
     input_dir = Path("converter/input")
-    if not input_dir.exists():
-        print(f"入力ディレクトリ '{input_dir}' が存在しません。")
-        return
-    print("Demucs音声分離 デバッグツール")
-    print("=" * 50)
-    
-    # ステップ1: ファイルシステムのデバッグ
-    debug_file_system()
-    
-    # ステップ2: 音声ファイルの読み込みテスト
-    sr = test_audio_loading()
-    
-    # ステップ3: 既存ファイルでの分離テスト
-    success = test_demucs_separation(sr)
-    if success:
-        print("音声分離テストが成功しました！")
-    else:
-        print("音声分離テストに失敗しました。")
-    
+    input_dir.mkdir(parents=True, exist_ok=True)
+    # input_audioをinput_dirにコピー
+    target_path = input_dir / input_audio.name
+    if input_audio != target_path:
+        shutil.copy(str(input_audio), str(target_path))
+
+    # Demucs分離
+    separator = Separator(model="htdemucs")
+    abs_path = str(target_path.absolute())
+    wav, sr = torchaudio.load(abs_path)
+    original, stems = separator.separate_audio_file(abs_path)
+    keep_dir = Path("converter/keep")
+    keep_dir.mkdir(parents=True, exist_ok=True)
+    out_files = []
+    for name, tensor in stems.items():
+        out_path = keep_dir / f"{target_path.stem}_{name}.wav"
+        torchaudio.save(str(out_path), tensor, sr)
+        out_files.append(str(out_path))
+    return out_files
+
 
 # if __name__ == "__main__":
 #     main()

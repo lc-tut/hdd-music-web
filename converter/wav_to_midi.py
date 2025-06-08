@@ -24,64 +24,50 @@ def debug_files():
             print(f"  - {wav_file.name} ({size:,} bytes)")
     print("=" * 30)
 
-def main():
-    # デバッグ情報を表示
+def main(input_audio):
     debug_files()
-    
-    # 入力・出力ディレクトリを統一してPathで管理
     keep_dir = Path("converter/keep")
     if keep_dir.exists():
-        shutil.rmtree(input_dir)  # 既存のディレクトリを削除
-        keep_dir.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(keep_dir)
+    keep_dir.mkdir(parents=True, exist_ok=True)
 
     output_dir = Path("converter/output")
     if output_dir.exists():
-        shutil.rmtree(output_dir)  # 既存のディレクトリを削除
-        output_dir.mkdir(parents=True, exist_ok=True)
-    
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     # 音声分離を実行
     print("音声分離を実行中...")
-    separate.main()
-    
+    separate.main(input_audio)
+
     print("WAVをMIDIに変換します。")
-    
-    # WAVファイルのみを取得
     wav_files = list(keep_dir.glob("*.wav"))
-    
     if not wav_files:
         print("変換対象のWAVファイルが見つかりません")
-        return
-    
-    print(f"見つかったファイル数: {len(wav_files)}")
-    
-    # 各ファイルを処理
+        return []
+
+    midi_files = []
     for audio_file in wav_files:
         if not audio_file.exists():
             print(f"ファイルが存在しません: {audio_file}")
             continue
-            
         print(f"変換中: {audio_file.name}")
-        
         try:
-            # 絶対パスを文字列で渡す
             predict_and_save(
-                [str(audio_file.absolute())],  # 絶対パスのリスト
-                str(output_dir),  # 出力ディレクトリ（文字列）
-                True,  # save_midi .midを保存
-                False,  # sonify_midi MIDIをwavに変換して保存
-                False,  # save_model_outputs MIDIに音を付けて出力（.wav）
-                False,  # save_notes ノート情報を保存
+                [str(audio_file.absolute())],
+                str(output_dir),
+                True, False, False, False,
                 ICASSP_2022_MODEL_PATH,
             )
+            midi_path = output_dir / f"{audio_file.stem}.mid"
+            midi_files.append(str(midi_path))
             print(f"完了: {audio_file.name} → {audio_file.stem}.mid")
-            
         except Exception as e:
             print(f"エラー ({audio_file.name}): {e}")
-            # 詳細なエラー情報が必要な場合
             import traceback
             traceback.print_exc()
-    
     print("変換処理が完了しました。")
+    return midi_files  # ← ここでMIDIファイルのパスリストを返す
 
 if __name__ == "__main__":
-    main()
+    main()  # テスト用のWAVファイルを指定

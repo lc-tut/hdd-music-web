@@ -1,7 +1,7 @@
 ##### Requirements without Version Specifiers #####
 basic-pitch
 torchaudio
-
+flask
 
 pip install --upgrade git+https://github.com/facebookresearch/demucs.git
 pip install torch==2.1.0 torchaudio==2.1.0 --upgrade
