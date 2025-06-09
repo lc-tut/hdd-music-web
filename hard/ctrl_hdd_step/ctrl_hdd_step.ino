@@ -6,9 +6,12 @@
 #define DIR_PIN 4
 #define ENABLE_PIN 5
 
+#define HDD_PIN 18
+
 // マルチコア用変数
 TaskHandle_t stepperTaskHandle = NULL;
 volatile bool midi_flag = false;
+volatile bool hdd_step_flag = true; // HDD : false, Step : true
 volatile uint8_t currentNote = 60;
 volatile uint8_t currentVelocity = 0;
 
@@ -16,7 +19,7 @@ volatile uint8_t currentVelocity = 0;
 SemaphoreHandle_t xMutex = NULL;
 
 const unsigned long noteFrequencies[132] = {
-  // C0からC10まで128音程分
+  // C0からC10まで132音程分
   30578, 28862, 27242, 25713, 24270, 22908, 21622, 20408, 19263, 18182, 17161, 16198, // C0-B0
   15289, 14431, 13621, 12856, 12135, 11454, 10811, 10204, 9631, 9091, 8581, 8099,   // C1-B1
   7645, 7215, 6810, 6428, 6067, 5727, 5405, 5102, 4816, 4545, 4290, 4050,         // C2-B2
@@ -34,6 +37,7 @@ int arrayNumber = sizeof noteFrequencies / sizeof noteFrequencies[0];
 // ステッピングモーター制御タスク（Core 0で実行）
 void stepperTask(void *parameter) {
   bool localMidiFlag = false;
+  bool localHddStepFlag = false;
   uint8_t localNote = 60;
   unsigned long stepInterval = 800; // マイクロ秒
   
@@ -41,6 +45,7 @@ void stepperTask(void *parameter) {
     // 共有変数を安全に読み取り
     if (xSemaphoreTake(xMutex, portMAX_DELAY)) {
       localMidiFlag = midi_flag;
+      localHddStepFlag = hdd_step_flag;
       localNote = currentNote;
       xSemaphoreGive(xMutex);
     }
@@ -48,10 +53,19 @@ void stepperTask(void *parameter) {
     if (localMidiFlag) {
       // 音程に応じてステップ間隔を調整（オプション）
       stepInterval = 1000000 / noteFrequencies[arrayNumber-localNote];
-      digitalWrite(STEP_PIN, HIGH);
-      delayMicroseconds(stepInterval);
-      digitalWrite(STEP_PIN, LOW);
-      delayMicroseconds(stepInterval);
+      if (localHddStepFlag) {
+        // ステッピングモーター制御
+        digitalWrite(STEP_PIN, HIGH);
+        delayMicroseconds(stepInterval);
+        digitalWrite(STEP_PIN, LOW);
+        delayMicroseconds(stepInterval);
+      } else {
+        // HDD制御
+        digitalWrite(HDD_PIN, HIGH);
+        delayMicroseconds(stepInterval);
+        digitalWrite(HDD_PIN, LOW);
+        delayMicroseconds(stepInterval);
+      }
     } else {
       // アイドル時は少し待機
       vTaskDelay(pdMS_TO_TICKS(1));
@@ -67,6 +81,7 @@ void setup() {
   pinMode(STEP_PIN, OUTPUT);
   pinMode(DIR_PIN, OUTPUT);
   pinMode(ENABLE_PIN, OUTPUT);
+  pinMode(HDD_PIN, OUTPUT);
   digitalWrite(ENABLE_PIN, HIGH);
   
   // ミューテックス作成
